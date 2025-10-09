@@ -85,10 +85,6 @@ This filtering scheme acts as an **automated posterior refinement step**, minimi
   <img src="experiments/IRFS Final.png" width="80%">
   </p>
 
-- **Local Projections – Posterior**
-  <p align="center">
-  <img src="experiments/LP.png" width="80%">
-  </p>
 
 - **Local Projections – HAC**
   <p align="center">
@@ -98,6 +94,11 @@ This filtering scheme acts as an **automated posterior refinement step**, minimi
 - **FEVD (Forecast Error Variance Decomposition)**
   <p align="center">
   <img src="experiments/afevd4.png" width="80%">
+  </p>
+
+- **Markov Chain Trimming**
+  <p align="center">
+  <img src="experiments/Posterior theta 7.png" width="80%">
   </p>
 
 ---
