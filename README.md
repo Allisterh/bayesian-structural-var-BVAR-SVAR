@@ -1,5 +1,4 @@
-# Bayesian Structural VAR (BSVAR) Analysis Notebook
-
+# Bayesian Structural VAR (SBVAR) with Local Projections (LP)
 
 ![Repo size](https://img.shields.io/github/repo-size/pablo-reyes8/bayesian-structural-var)
 ![Last commit](https://img.shields.io/github/last-commit/pablo-reyes8/bayesian-structural-var)
@@ -8,67 +7,140 @@
 ![Forks](https://img.shields.io/github/forks/pablo-reyes8/bayesian-structural-var?style=social)
 ![Stars](https://img.shields.io/github/stars/pablo-reyes8/bayesian-structural-var?style=social)
 
+---
 
-A self-contained Jupyter notebook that implements a **Bayesian Structural VAR with agnostic identification** to isolate pure U.S. Fed policy shocks and trace their impact on Colombian macro-financial variables:
+A self-contained research framework that estimates a **Bayesian Structural VAR (SBVAR)** with **agnostic identification**, and complements it with **Local Projections (LP)** to assess the robustness of impulse-response dynamics under alternative identification strategies.
 
-- **Variables:** Unemployment, Inflation, Central Bank rate, Exchange rate (TRM), 5-year TES yields  
-- **Identification:** Soft priors (truncated-t and asymmetric-t) on structural contemporaneous matrix and shock loadings  
-- **Sampling:**  
-  - Gibbs draws for reduced-form coefficients (Matrix-Normal) and error variances (Inverse-Gamma)  
-  - Metropolis–Hastings for non-conjugate structural blocks, with adaptive scaling during warm-up  
-
-## Contents
-
-1. **Data Preparation**  
-   - Load series in levels, logs and HP-filtered cycles  
-   - Build lagged regressors and intercept terms  
-
-2. **Model Specification**  
-   - Structural form:  
-     $$A_0\,y_t = a_0 + \sum_{i=1}^p A_i\,y_{t-i} + C\,\varepsilon_t$$  
-   - Reduced form with Minnesota-style conjugate priors for \(B\) and \(\Sigma\)  
-   - Agnostic identification via soft-information priors
-
-3. **MCMC Estimation**  
-   - Metropolis–Hastings updates for $(A_0,C)$  
-   - Gibbs sampling for $B$ and $\Sigma$  
-   - Adaptive tuning of proposal covariance to target 20–30% acceptance  
-
-4. **Diagnostics**  
-   - Trace plots and histograms with posterior mean markers  
-   - Acceptance-rate feedback and autocorrelation checks  
-
-5. **Impulse-Response Analysis**  
-   - Construct companion matrices from draws  
-   - Compute IRFs for each posterior sample  
-   - Plot median response with 68% & 80% credible bands  
-
-6. **FEVD**  
-   - Calculate forecast-error variance shares by shock and horizon  
-   - Stack-area charts showing evolving contributions  
-
-7. **Utility Functions**  
-   - Nearest SPD projection for Hessian-based proposals  
-   - Truncated and skewed-t log-densities for soft restrictions  
-   - Companion-matrix and IRF builder routines  
+This project aims to isolate **U.S. monetary policy shocks** and evaluate their transmission to **Colombian macro-financial variables** such as interest rates, inflation, exchange rate, and unemployment.
 
 ---
 
-### How to Use
+## 🔹 Model Overview
 
-1. Clone this notebook.  
-2. Install required Python packages.  
-3. Open in Jupyter and run all cells from top to bottom.  
-4. Modify hyperparameters (lag order, prior strengths, horizons) at the top.  
-5. Examine the resulting IRFs, FEVDs and convergence diagnostics to draw economic insights.
+### **1. Structural Bayesian VAR (SBVAR)**
+
+Implements a Bayesian structural model of the form:
+
+$$
+A_0 y_t = a_0 + \sum_{i=1}^p A_i y_{t-i} + C \varepsilon_t
+$$
+
+- **Priors:**
+
+  - Conjugate Minnesota-type priors for reduced-form parameters $(B, \Sigma)$
+  - Soft priors (truncated or skewed-t) for structural coefficients $A_0$ and shock loadings $C$
+
+- **Sampling:**
+
+  - Gibbs sampling for $B$ and $\Sigma$
+  - Metropolis–Hastings for $A_0$ and $C$ with adaptive scaling during warm-up
+
+- **Diagnostics:**
+
+  - Convergence analysis via R-hat, rolling means, and ESS
+  - Posterior trace plots and acceptance-rate monitoring
+
+- **Outputs:**
+  - Posterior draws of $A_0$, $B$, and structural shocks
+  - IRFs with 68% and 80% credible intervals
+  - FEVDs (Forecast Error Variance Decomposition)
+
+---
+
+### **2. Local Projections (LP – Jordà, 2005)**
+
+Implements two complementary LP methodologies for robustness verification of the SBVAR IRFs:
+
+| Method           | Description                                                                                                         | Folder                               |
+| :--------------- | :------------------------------------------------------------------------------------------------------------------ | :----------------------------------- |
+| **LP–Posterior** | Runs LP regressions for each posterior draw of the SBVAR, computing percentile-based IRF bands across draws.        | `src/local_projections_posterior.py` |
+| **LP–HAC**       | Estimates a single LP with HAC-robust standard errors, using the structural shock from a representative SBVAR draw. | `src/local_projections_HAC.py`       |
+
+Both methods replicate the dynamic responses to U.S. T-bill shocks and allow validation of the **shape, timing, and sign consistency** of the structural IRFs.
+
+### **3. MCMC Sampling and Posterior Filtering**
+
+The MCMC routine integrates a **diagnostic-based chain trimming** procedure that ensures the validity of posterior draws used in inference.
+
+- **Two-chain sampling:** Each MCMC run generates two independent chains with controlled seeds for convergence assessment.
+- **Diagnostics-based selection:** Posterior samples are filtered using rolling diagnostics:
+  - **Rank R-hat** (Gelman–Rubin diagnostic) computed over sliding windows.
+  - **Cumulative mean stability** test to ensure posterior stationarity.
+  - Optional **validity filters** (e.g., positive definiteness, invertibility) applied to each draw before diagnostics.
+- **Adaptive trimming logic:**  
+  The algorithm selects valid posterior segments through two complementary modes:
+  - **Global cut (`t*`)** — a single conservative burn-in cutoff based on both R-hat and mean stability.
+  - **Per-parameter contiguous blocks** — identifies stable intervals (`segment_draws`) for each parameter where chains exhibit convergence and low variance drift.
+- **Output validation:** Only stable and converged posterior segments are used for inference, ensuring that IRFs, FEVDs, and LP regressions are computed from **diagnostically consistent samples**.
+
+This filtering scheme acts as an **automated posterior refinement step**, minimizing the inclusion of non-stationary or pre-convergence draws and improving the credibility of structural inference.
+
+---
+
+## 📊 Analytical Outputs
+
+- **IRFs (Impulse Response Functions)**  
+  Median responses with 68% and 80% credible or confidence bands.
+  <p align="center">
+  <img src="experiments/IRFS Final.png" width="80%">
+  </p>
+
+- **Local Projections – Posterior**
+  <p align="center">
+  <img src="experiments/LP.png" width="80%">
+  </p>
+
+- **Local Projections – HAC**
+  <p align="center">
+  <img src="experiments/LP HAC.png" width="80%">
+  </p>
+
+- **FEVD (Forecast Error Variance Decomposition)**
+  <p align="center">
+  <img src="experiments/afevd4.png" width="80%">
+  </p>
+
+---
+
+## 🧩 Repository Structure
+
+```plaintext
+SBVAR/
+│
+├── experiments/ # Figures and visual outputs
+│
+├── src/ # Modular source code
+│ ├── identification.py # Structural identification priors and A0 routines
+│ ├── irfs_fevd.py # IRF and FEVD construction from posterior draws
+│ ├── local_projections_HAC.py # LP via HAC standard errors
+│ ├── local_projections_posterior.py # LP via posterior draws
+│ ├── lp_utils.py # Lag construction and alignment helpers
+│ ├── mcmc_advanced.py # MCMC tuning and diagnostics
+│ ├── metropolis_sampler.py # Metropolis–Hastings routines
+│ ├── posteriors_gibbs.py # Gibbs sampling for B, Σ
+│ └── graph_analisis.py # Visualization utilities
+│
+├── sbar_showcase/
+│ └── Bayesian_SVAR_LP.ipynb # Main notebook: SBVAR + LP integration
+│
+└── Bayesian_SVAR_LP.ipynb # All Functions in one Jupyter
+└── XARIMA13_seasonal_fit # R script for XARIMA13 seasonal
+
+```
 
 ## Dependencies
 
 ```bash
-pip install pandas numpy scipy numdifftools matplotlib seaborn
+pip install pandas numpy scipy numdifftools matplotlib seaborn arviz xarray ontextlib
 ```
 
-References: 
+## 🧠 Research Contribution
+
+- Extends standard SBVAR frameworks by integrating **Bayesian inference** with **Local Projections** for cross-method consistency analysis.
+- Provides a **modular and reproducible codebase** for structural identification, posterior simulation, and IRF validation.
+- Enables **robustness verification** of structural dynamics under both Bayesian and frequentist perspectives.
+
+References:
 
 **J. Jacobo, Una introducción a los métodos de máxima entropía y de inferencia bayesiana en econometría**
 
@@ -79,4 +151,4 @@ https://github.com/pablo-reyes8
 
 ## License
 
-This project is licensed under the Apache License 2.0.  
+This project is licensed under the Apache License 2.0.
