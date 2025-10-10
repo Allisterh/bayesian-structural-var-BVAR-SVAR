@@ -124,7 +124,7 @@ SBVAR/
 ├── sbar_showcase/
 │ └── Bayesian_SVAR_LP.ipynb # Main notebook: SBVAR + LP integration
 │
-└── Bayesian_SVAR_LP.ipynb # All Functions in one Jupyter
+└── Bayesian_SVAR_LP.ipynb # All the code logic in one Jupyter
 └── XARIMA13_seasonal_fit # R script for XARIMA13 seasonal
 
 ```
