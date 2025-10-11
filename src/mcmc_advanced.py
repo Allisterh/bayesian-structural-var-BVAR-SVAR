@@ -502,8 +502,8 @@ def run_two_chains_and_trim(mcmc_func,
 
     print("Diagnóstico R-hat en la selección final (t* global):")
     print(f" Total de parámetros: {n_total}")
-    print(f"✅Convergieron (<{threshold}): {n_good}")
-    print(f"⚠️ No convergieron (≥{threshold}): {n_bad}")
+    print(f"Convergieron (<{threshold}): {n_good}")
+    print(f"No convergieron (≥{threshold}): {n_bad}")
     if n_bad > 0:
         idx_bad = np.where(rhat_array >= threshold)[0]
         print(f"Parámetros sin convergencia (índices): {idx_bad.tolist()}")

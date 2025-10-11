@@ -1,4 +1,4 @@
-import numpy
+import numpy as np 
 
 def diagnose_out(out, expected_P=16, print_report=True):
     """
