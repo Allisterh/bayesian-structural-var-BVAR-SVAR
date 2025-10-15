@@ -45,6 +45,37 @@ $$
   - IRFs with 68% and 80% credible intervals
   - FEVDs (Forecast Error Variance Decomposition)
 
+
+### Contemporary system
+
+$$
+\begin{aligned}
+(1)\;& i^{US}_{5y,t} = \varepsilon^{US}_t \\
+(2)\;& i^{CO}_{5y,t} = a_{21}\, i^{US}_{5y,t} + a_{23}\, \mathrm{TRM}_t + a_{25}\, i^{CB}_t + \varepsilon^{CO}_t \\
+(3)\;& \mathrm{TRM}_t = a_{31}\, i^{US}_{5y,t} + a_{32}\, i^{CO}_{5y,t} + a_{35}\, i^{CB}_t + \varepsilon^{TRM}_t \\
+(4)\;& \pi_t = a_{43}\, \mathrm{TRM}_t + a_{46}\, u_t + \varepsilon^{\pi}_t \\
+(5)\;& i^{CB}_t = a_{51}\, i^{US}_{5y,t} + a_{52}\, i^{CO}_{5y,t} + a_{53}\, \mathrm{TRM}_t + a_{54}\, \pi_t + a_{56}\, u_t + \varepsilon^{CB}_t \\
+(6)\;& u_t = a_{62}\, i^{CO}_{5y,t} + a_{64}\, \pi_t + a_{65}\, i^{CB}_t + \varepsilon^{u}_t
+\end{aligned}
+$$
+
+
+
+### Vector of structural shocks
+
+$$
+\varepsilon_t =
+\begin{pmatrix}
+\varepsilon^{US}_t \\
+\varepsilon^{CO}_t \\
+\varepsilon^{TRM}_t \\
+\varepsilon^{\pi}_t \\
+\varepsilon^{CB}_t \\
+\varepsilon^{u}_t
+\end{pmatrix}
+$$
+
+
 ---
 
 ### **2. Local Projections (LP – Jordà, 2005)**
